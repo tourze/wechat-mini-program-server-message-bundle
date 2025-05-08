@@ -1,17 +1,25 @@
 {
-    "name": "tourze/wechat-mini-program-server-message-bundle",
-    "description": "小程序服务端消息",
-    "type": "symfony-bundle",
-    "require": {
-        "php": "^8.1"
-    },
-    "autoload": {
-        "psr-4": {
-            "WechatMiniProgramServerMessageBundle\\": "src"
-        }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^10.0",
-        "phpstan/phpstan": "^2.1"
+  "name": "tourze/wechat-mini-program-server-message-bundle",
+  "description": "小程序服务端消息",
+  "type": "symfony-bundle",
+  "require": {
+    "php": "^8.1",
+    "symfony/http-kernel": "^6.4",
+    "symfony/framework-bundle": "^6.4",
+    "doctrine/orm": "^3.0",
+    "psr/log": "^3|^2|^1",
+    "symfony/dependency-injection": "^6.4",
+    "symfony/config": "^6.4",
+    "doctrine/dbal": "^4.0",
+    "doctrine/doctrine-bundle": "^2.13"
+  },
+  "autoload": {
+    "psr-4": {
+      "WechatMiniProgramServerMessageBundle\\": "src"
     }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "phpstan/phpstan": "^2.1"
+  }
 }
