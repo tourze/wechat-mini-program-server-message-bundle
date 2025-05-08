@@ -35,7 +35,7 @@ class WXBizMsgCrypt
     */
     public function VerifyURL($sMsgSignature, $sTimeStamp, $sNonce, $sEchoStr, &$sReplyEchoStr)
     {
-        if (43 != mb_strlen($this->m_sEncodingAesKey)) {
+        if (43 != strlen($this->m_sEncodingAesKey)) {
             return ErrorCode::$IllegalAesKey;
         }
 
@@ -117,7 +117,7 @@ class WXBizMsgCrypt
      */
     public function DecryptMsg($sMsgSignature, $sTimeStamp, $sNonce, $sPostData, &$sMsg)
     {
-        if (43 != mb_strlen($this->m_sEncodingAesKey)) {
+        if (43 != strlen($this->m_sEncodingAesKey)) {
             return ErrorCode::$IllegalAesKey;
         }
 

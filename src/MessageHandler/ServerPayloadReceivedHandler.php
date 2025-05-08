@@ -128,6 +128,6 @@ class ServerPayloadReceivedHandler
             ]);
         }
 
-        $this->cache->set($cacheKey, time(), HOUR_IN_SECONDS);
+        $this->cache->set($cacheKey, time(), 60 * 60);
     }
 }

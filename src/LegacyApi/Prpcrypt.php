@@ -31,7 +31,7 @@ class Prpcrypt
     {
         try {
             // 拼接
-            $text = $this->getRandomStr() . pack('N', mb_strlen($text)) . $text . $receiveId;
+            $text = $this->getRandomStr() . pack('N', strlen($text)) . $text . $receiveId;
             // 添加PKCS#7填充
             $pkc_encoder = new PKCS7Encoder();
             $text = $pkc_encoder->encode($text);
@@ -71,15 +71,15 @@ class Prpcrypt
             // 删除PKCS#7填充
             $pkc_encoder = new PKCS7Encoder();
             $result = $pkc_encoder->decode($decrypted);
-            if (mb_strlen($result) < 16) {
+            if (strlen($result) < 16) {
                 return [];
             }
             // 拆分
-            $content = mb_substr($result, 16, mb_strlen($result));
-            $len_list = unpack('N', mb_substr($content, 0, 4));
+            $content = substr($result, 16, strlen($result));
+            $len_list = unpack('N', substr($content, 0, 4));
             $xml_len = $len_list[1];
-            $xml_content = mb_substr($content, 4, $xml_len);
-            $from_receiveId = mb_substr($content, $xml_len + 4);
+            $xml_content = substr($content, 4, $xml_len);
+            $from_receiveId = substr($content, $xml_len + 4);
         } catch (\Exception $e) {
             echo $e;
 
@@ -101,7 +101,7 @@ class Prpcrypt
     {
         $str = '';
         $str_pol = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyl';
-        $max = mb_strlen($str_pol) - 1;
+        $max = strlen($str_pol) - 1;
         for ($i = 0; $i < 16; ++$i) {
             $str .= $str_pol[mt_rand(0, $max)];
         }
