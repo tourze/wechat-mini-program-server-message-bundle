@@ -22,7 +22,8 @@
     "tourze/doctrine-indexed-bundle": "0.0.*",
     "tourze/doctrine-timestamp-bundle": "0.0.*",
     "yiisoft/arrays": "^3",
-    "yiisoft/json": "^1.0"
+    "yiisoft/json": "^1.0",
+    "psr/simple-cache": "^1.0|^2.0|^3.0"
   },
   "require-dev": {
     "phpstan/phpstan": "^2.1",
