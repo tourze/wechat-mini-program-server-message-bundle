@@ -112,7 +112,7 @@ class ServerPayloadReceivedHandler
         }
 
         // 既然我能拿到微信用户信息了，那么我们就存一份到主用户表
-        $this->userRepository->transformToBizUser($localUser);
+        $this->userRepository->transformToSysUser($localUser);
 
         // 分发事件出去让应用自己处理
         $event = new ServerMessageRequestEvent();
