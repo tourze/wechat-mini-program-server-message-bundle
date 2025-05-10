@@ -23,3 +23,4 @@ composer require tourze/wechat-mini-program-server-message-bundle
 ## 参考文档
 
 - [示例链接](https://example.com)
+
