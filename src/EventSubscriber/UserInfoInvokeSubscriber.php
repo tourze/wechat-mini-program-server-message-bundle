@@ -4,7 +4,7 @@ namespace WechatMiniProgramServerMessageBundle\EventSubscriber;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
-use WechatMiniProgramAuthBundle\Repository\UserRepository;
+use Tourze\WechatMiniProgramUserContracts\UserLoaderInterface;
 use WechatMiniProgramServerMessageBundle\Event\ServerMessageRequestEvent;
 use Yiisoft\Arrays\ArrayHelper;
 
@@ -19,7 +19,7 @@ class UserInfoInvokeSubscriber
 {
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly UserRepository $userRepository,
+        private readonly UserLoaderInterface $userLoader,
     ) {
     }
 
@@ -45,14 +45,12 @@ class UserInfoInvokeSubscriber
             return;
         }
 
-        $OpenID = ArrayHelper::getValue($message, 'OpenID');
-        if (!$OpenID) {
-            $OpenID = ArrayHelper::getValue($message, 'FromUserName');
+        $openID = ArrayHelper::getValue($message, 'OpenID');
+        if (!$openID) {
+            $openID = ArrayHelper::getValue($message, 'FromUserName');
         }
 
-        $user = $this->userRepository->findOneBy([
-            'openId' => $OpenID,
-        ]);
+        $user = $this->userLoader->loadUserByOpenId($openID);
         if (!$user) {
             return;
         }

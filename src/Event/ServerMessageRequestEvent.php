@@ -3,7 +3,7 @@
 namespace WechatMiniProgramServerMessageBundle\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
-use WechatMiniProgramAuthBundle\Entity\User;
+use Tourze\WechatMiniProgramUserContracts\UserInterface;
 use WechatMiniProgramBundle\Entity\Account;
 
 class ServerMessageRequestEvent extends Event
@@ -18,7 +18,7 @@ class ServerMessageRequestEvent extends Event
      */
     private Account $account;
 
-    private User $wechatUser;
+    private UserInterface $wechatUser;
 
     public function getMessage(): array
     {
@@ -40,12 +40,12 @@ class ServerMessageRequestEvent extends Event
         $this->account = $account;
     }
 
-    public function getWechatUser(): User
+    public function getWechatUser(): UserInterface
     {
         return $this->wechatUser;
     }
 
-    public function setWechatUser(User $wechatUser): void
+    public function setWechatUser(UserInterface $wechatUser): void
     {
         $this->wechatUser = $wechatUser;
     }

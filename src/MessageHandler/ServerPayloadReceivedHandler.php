@@ -11,6 +11,7 @@ use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Tourze\WechatMiniProgramUserContracts\UserLoaderInterface;
 use WechatMiniProgramAuthBundle\Entity\User;
 use WechatMiniProgramAuthBundle\Enum\Language;
 use WechatMiniProgramAuthBundle\Repository\UserRepository;
@@ -26,6 +27,7 @@ class ServerPayloadReceivedHandler
 {
     public function __construct(
         private readonly UserRepository $userRepository,
+        private readonly UserLoaderInterface $userLoader,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly LoggerInterface $logger,
         private readonly AccountRepository $accountRepository,
@@ -100,7 +102,7 @@ class ServerPayloadReceivedHandler
         }
 
         // 因为在这里我们也能拿到OpenID了，所以同时也要存库一次
-        $localUser = $this->userRepository->findOneBy(['openId' => $payload['FromUserName']]);
+        $localUser = $this->userLoader->loadUserByOpenId($payload['FromUserName']);
         if (!$localUser) {
             $localUser = new User();
             $localUser->setAccount($account);
