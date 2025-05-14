@@ -48,5 +48,10 @@
     "psr-4": {
       "WechatMiniProgramServerMessageBundle\\": "src"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WechatMiniProgramServerMessageBundle\\Tests\\": "tests/"
+    }
   }
 }
