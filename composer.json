@@ -31,6 +31,7 @@
     "tourze/doctrine-timestamp-bundle": "0.0.*",
     "tourze/easy-admin-attribute": "0.1.*",
     "tourze/symfony-async-bundle": "0.0.*",
+    "tourze/symfony-schedule-entity-clean-bundle": "0.1.*",
     "tourze/user-event-bundle": "~0.0.3",
     "tourze/user-id-bundle": "0.1.*",
     "tourze/wechat-helper": "0.0.*",
