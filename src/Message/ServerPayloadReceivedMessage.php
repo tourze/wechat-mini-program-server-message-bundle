@@ -2,7 +2,7 @@
 
 namespace WechatMiniProgramServerMessageBundle\Message;
 
-use Tourze\Symfony\Async\Message\AsyncMessageInterface;
+use Tourze\AsyncContracts\AsyncMessageInterface;
 
 class ServerPayloadReceivedMessage implements AsyncMessageInterface
 {
