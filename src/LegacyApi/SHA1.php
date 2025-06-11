@@ -25,7 +25,7 @@ class SHA1
             $str = implode($array);
 
             return [ErrorCode::$OK, sha1($str)];
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             echo $e . "\n";
 
             return [ErrorCode::$ComputeSignatureError, null];

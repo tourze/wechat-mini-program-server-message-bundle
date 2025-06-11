@@ -39,7 +39,7 @@ class Prpcrypt
             $encrypted = openssl_encrypt($text, 'AES-256-CBC', $this->key, OPENSSL_ZERO_PADDING, $this->iv);
 
             return [ErrorCode::$OK, $encrypted];
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             echo $e;
 
             return [ErrorCode::$EncryptAESError, null];
@@ -56,7 +56,7 @@ class Prpcrypt
         try {
             // 解密
             $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $this->key, OPENSSL_ZERO_PADDING, $this->iv);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             return [ErrorCode::$DecryptAESError, null];
         }
         try {
@@ -72,7 +72,7 @@ class Prpcrypt
             $xml_len = $len_list[1];
             $xml_content = substr($content, 4, $xml_len);
             $from_receiveId = substr($content, $xml_len + 4);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             echo $e;
 
             return [ErrorCode::$IllegalBuffer, null];
