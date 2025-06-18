@@ -123,7 +123,7 @@ class WXBizMsgCrypt
 
         $pc = new Prpcrypt($this->m_sEncodingAesKey);
 
-        if (json_validate($sPostData)) {
+        if ((bool) json_validate($sPostData)) {
             $sPostData = json_decode($sPostData, true);
             $encrypt = $sPostData['Encrypt'];
         } else {

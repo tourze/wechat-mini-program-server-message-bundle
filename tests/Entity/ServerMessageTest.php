@@ -97,7 +97,7 @@ class ServerMessageTest extends TestCase
     public function testSetAndGetCreateTimeWithValidDateTime(): void
     {
         $serverMessage = new ServerMessage();
-        $testValue = new \DateTime();
+        $testValue = new \DateTimeImmutable();
 
         $returnValue = $serverMessage->setCreateTime($testValue);
 

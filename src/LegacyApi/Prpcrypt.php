@@ -63,7 +63,7 @@ class Prpcrypt
             // 删除PKCS#7填充
             $pkc_encoder = new PKCS7Encoder();
             $result = $pkc_encoder->decode($decrypted);
-            if (strlen($result) < 16) {
+            if ((bool) strlen($result) < 16) {
                 return [];
             }
             // 拆分

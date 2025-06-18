@@ -99,7 +99,7 @@ class ServerController extends AbstractController
 
         // $logger->info('开始处理4', ['appId' => $appId, 'msg' => $msg]);
 
-        if (json_validate($msg)) {
+        if ((bool) json_validate($msg)) {
             $json = Json::decode($msg);
         } else {
             $json = XML::parse($msg);

@@ -39,7 +39,7 @@ class ServerPayloadReceivedHandler
     public function __invoke(ServerPayloadReceivedMessage $message): void
     {
         $payload = $message->getPayload();
-        if (empty($payload)) {
+        if ((bool) empty($payload)) {
             throw new UnrecoverableMessageHandlingException('回调数据Payload不能为空');
         }
 
@@ -54,7 +54,7 @@ class ServerPayloadReceivedHandler
         }
 
         $MsgId = ArrayHelper::getValue($payload, 'MsgId', '');
-        if (empty($MsgId)) {
+        if ((bool) empty($MsgId)) {
             $MsgId = 'GEN-' . md5(Json::encode($payload));
         }
 
