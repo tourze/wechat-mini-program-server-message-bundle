@@ -29,8 +29,6 @@
     "symfony/yaml": "^6.4 || ^7.1",
     "tourze/async-contracts": "0.0.*",
     "tourze/doctrine-indexed-bundle": "0.0.*",
-    "tourze/doctrine-timestamp-bundle": "0.0.*",
-    "tourze/easy-admin-attribute": "0.1.*",
     "tourze/symfony-schedule-entity-clean-bundle": "0.1.*",
     "tourze/user-event-bundle": "0.0.*",
     "tourze/user-id-bundle": "0.1.*",
