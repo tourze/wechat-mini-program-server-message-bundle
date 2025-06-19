@@ -2,7 +2,7 @@
 
 namespace WechatMiniProgramServerMessageBundle\MessageHandler;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMInvalidArgumentException;
@@ -75,7 +75,7 @@ class ServerPayloadReceivedHandler
         $entity->setMsgType($payload['MsgType']);
         $entity->setToUserName($payload['ToUserName']);
         $entity->setFromUserName($payload['FromUserName']);
-        $entity->setCreateTime(Carbon::createFromTimestamp($payload['CreateTime'], date_default_timezone_get()));
+        $entity->setCreateTime(CarbonImmutable::createFromTimestamp($payload['CreateTime'], date_default_timezone_get()));
         $entity->setRawData($payload);
 
         try {
