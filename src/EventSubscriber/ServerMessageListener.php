@@ -24,11 +24,11 @@ class ServerMessageListener
     public function postPersist(ServerMessage $object): void
     {
         // 没有负责人，不处理了
-        if (!$object->getAccount()->getDirector()) {
+        if (null === $object->getAccount()->getDirector()) {
             return;
         }
 
-        if ($object->getRawData()['Event'] ?? '' !== 'charge_service_quota_notify') {
+        if (($object->getRawData()['Event'] ?? '') !== 'charge_service_quota_notify') {
             return;
         }
 

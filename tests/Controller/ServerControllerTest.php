@@ -76,7 +76,7 @@ class ServerControllerTest extends TestCase
         );
         
         // 执行控制器方法
-        $response = $this->controller->index(
+        $response = $this->controller->__invoke(
             $appId, 
             $request, 
             $this->accountRepository, 
@@ -124,7 +124,7 @@ class ServerControllerTest extends TestCase
         );
         
         // 执行控制器方法
-        $response = $this->controller->index(
+        $response = $this->controller->__invoke(
             $appId, 
             $request, 
             $this->accountRepository, 
@@ -160,7 +160,7 @@ class ServerControllerTest extends TestCase
         $this->expectExceptionMessage('找不到小程序');
         
         // 执行控制器方法
-        $this->controller->index(
+        $this->controller->__invoke(
             $appId, 
             $request, 
             $this->accountRepository, 
@@ -209,7 +209,7 @@ class ServerControllerTest extends TestCase
         );
         
         // 执行控制器方法
-        $response = $this->controller->index(
+        $response = $this->controller->__invoke(
             $appId, 
             $request, 
             $this->accountRepository, 
@@ -262,7 +262,7 @@ class ServerControllerTest extends TestCase
         );
         
         // 执行控制器方法
-        $response = $this->controller->index(
+        $response = $this->controller->__invoke(
             $appId, 
             $request, 
             $this->accountRepository, 

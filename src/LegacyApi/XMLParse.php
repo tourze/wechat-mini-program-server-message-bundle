@@ -16,7 +16,7 @@ class XMLParse
      *
      * @param string $xmltext 待提取的xml字符串
      *
-     * @return string 提取出的加密消息字符串
+     * @return array{0: int, 1: string|null}
      */
     public function extract($xmltext)
     {

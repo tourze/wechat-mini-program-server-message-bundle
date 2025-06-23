@@ -51,16 +51,16 @@ class WXBizMsgCrypt
 
         $signature = $array[1];
         if ($signature != $sMsgSignature) {
-            return ErrorCode::$ValidateSignatureError;
+            return (int) ErrorCode::$ValidateSignatureError;
         }
 
         $result = $pc->decrypt($sEchoStr, $this->m_sReceiveId);
         if (0 != $result[0]) {
-            return $result[0];
+            return (int) $result[0];
         }
         $sReplyEchoStr = $result[1];
 
-        return ErrorCode::$OK;
+        return (int) ErrorCode::$OK;
     }
 
     /**
@@ -102,7 +102,7 @@ class WXBizMsgCrypt
         $xmlparse = new XMLParse();
         $sEncryptMsg = $xmlparse->generate($encrypt, $signature, $sTimeStamp, $sNonce);
 
-        return ErrorCode::$OK;
+        return (int) ErrorCode::$OK;
     }
 
     /**
@@ -133,7 +133,7 @@ class WXBizMsgCrypt
             $ret = $array[0];
 
             if (0 != $ret) {
-                return $ret;
+                return (int) $ret;
             }
             $encrypt = $array[1];
         }
@@ -153,15 +153,15 @@ class WXBizMsgCrypt
 
         $signature = $array[1];
         if ($signature != $sMsgSignature) {
-            return ErrorCode::$ValidateSignatureError;
+            return (int) ErrorCode::$ValidateSignatureError;
         }
 
         $result = $pc->decrypt($encrypt, $this->m_sReceiveId);
         if (0 != $result[0]) {
-            return $result[0];
+            return (int) $result[0];
         }
         $sMsg = $result[1];
 
-        return ErrorCode::$OK;
+        return (int) ErrorCode::$OK;
     }
 }

@@ -16,7 +16,6 @@ use WechatMiniProgramServerMessageBundle\LegacyApi\WXBizMsgCrypt;
 use WechatMiniProgramServerMessageBundle\Message\ServerPayloadReceivedMessage;
 use Yiisoft\Json\Json;
 
-#[Route('/wechat/mini-program')]
 class ServerController extends AbstractController
 {
     public function __construct(
@@ -28,8 +27,8 @@ class ServerController extends AbstractController
     /**
      * @see https://developers.weixin.qq.com/miniprogram/dev/framework/server-ability/message-push.html
      */
-    #[Route('/server/{appId}', name: 'wechat_mini_program_server', methods: ['GET', 'POST'])]
-    public function index(
+    #[Route('/wechat/mini-program/server/{appId}', name: 'wechat_mini_program_server', methods: ['GET', 'POST'])]
+    public function __invoke(
         string $appId,
         Request $request,
         AccountRepository $accountRepository,
@@ -39,7 +38,7 @@ class ServerController extends AbstractController
         // $logger->info('开始处理1', ['appId' => $appId]);
         // 进入的话，必然是小程序应用了
         $account = $accountRepository->findOneBy(['appId' => $appId]);
-        if (!$account) {
+        if (null === $account) {
             $logger->error('找不到小程序', ['appId' => $appId]);
             throw new NotFoundHttpException('找不到小程序');
         }
@@ -117,7 +116,7 @@ class ServerController extends AbstractController
         }
 
         $message = new ServerPayloadReceivedMessage();
-        $message->setAccountId($account->getId());
+        $message->setAccountId((string) $account->getId());
         $message->setPayload($json);
         $messageBus->dispatch($message);
 

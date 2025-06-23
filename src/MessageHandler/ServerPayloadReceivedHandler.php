@@ -44,7 +44,7 @@ class ServerPayloadReceivedHandler
         }
 
         $account = $this->accountRepository->find($message->getAccountId());
-        if (!$account) {
+        if (null === $account) {
             throw new UnrecoverableMessageHandlingException('找不到小程序账号');
         }
 
@@ -103,7 +103,7 @@ class ServerPayloadReceivedHandler
 
         // 因为在这里我们也能拿到OpenID了，所以同时也要存库一次
         $localUser = $this->userLoader->loadUserByOpenId($payload['FromUserName']);
-        if (!$localUser) {
+        if (null === $localUser) {
             $localUser = new User();
             $localUser->setAccount($account);
             $localUser->setOpenId($payload['FromUserName']);
@@ -114,7 +114,9 @@ class ServerPayloadReceivedHandler
         }
 
         // 既然我能拿到微信用户信息了，那么我们就存一份到主用户表
-        $this->userRepository->transformToSysUser($localUser);
+        if ($localUser instanceof User) {
+            $this->userRepository->transformToSysUser($localUser);
+        }
 
         // 分发事件出去让应用自己处理
         $event = new ServerMessageRequestEvent();

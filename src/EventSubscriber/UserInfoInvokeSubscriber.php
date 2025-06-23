@@ -46,12 +46,12 @@ class UserInfoInvokeSubscriber
         }
 
         $openID = ArrayHelper::getValue($message, 'OpenID');
-        if (!$openID) {
+        if (null === $openID || '' === $openID) {
             $openID = ArrayHelper::getValue($message, 'FromUserName');
         }
 
         $user = $this->userLoader->loadUserByOpenId($openID);
-        if (!$user) {
+        if (null === $user) {
             return;
         }
 
