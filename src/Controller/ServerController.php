@@ -27,7 +27,7 @@ class ServerController extends AbstractController
     /**
      * @see https://developers.weixin.qq.com/miniprogram/dev/framework/server-ability/message-push.html
      */
-    #[Route('/wechat/mini-program/server/{appId}', name: 'wechat_mini_program_server', methods: ['GET', 'POST'])]
+    #[Route(path: '/wechat/mini-program/server/{appId}', name: 'wechat_mini_program_server', methods: ['GET', 'POST'])]
     public function __invoke(
         string $appId,
         Request $request,
