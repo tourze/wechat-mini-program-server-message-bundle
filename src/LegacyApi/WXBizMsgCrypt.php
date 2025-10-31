@@ -4,11 +4,11 @@ namespace WechatMiniProgramServerMessageBundle\LegacyApi;
 
 class WXBizMsgCrypt
 {
-    private $m_sToken;
+    private string $m_sToken;
 
-    private $m_sEncodingAesKey;
+    private string $m_sEncodingAesKey;
 
-    private $m_sReceiveId;
+    private string $m_sReceiveId;
 
     /**
      * 构造函数
@@ -17,7 +17,7 @@ class WXBizMsgCrypt
      * @param $encodingAesKey string 开发者设置的EncodingAESKey
      * @param $receiveId      string, 不同应用场景传不同的id
      */
-    public function __construct($token, $encodingAesKey, $receiveId)
+    public function __construct(string $token, string $encodingAesKey, string $receiveId)
     {
         $this->m_sToken = $token;
         $this->m_sEncodingAesKey = $encodingAesKey;
@@ -33,9 +33,9 @@ class WXBizMsgCrypt
     *@param sReplyEchoStr: 解密之后的echostr，当return返回0时有效
     *@return：成功0，失败返回对应的错误码
     */
-    public function VerifyURL($sMsgSignature, $sTimeStamp, $sNonce, $sEchoStr, &$sReplyEchoStr)
+    public function VerifyURL(string $sMsgSignature, string $sTimeStamp, string $sNonce, string $sEchoStr, string &$sReplyEchoStr): int
     {
-        if (43 != strlen($this->m_sEncodingAesKey)) {
+        if (43 !== strlen($this->m_sEncodingAesKey)) {
             return ErrorCode::$IllegalAesKey;
         }
 
@@ -45,20 +45,27 @@ class WXBizMsgCrypt
         $array = $sha1->getSHA1($this->m_sToken, $sTimeStamp, $sNonce, $sEchoStr);
         $ret = $array[0];
 
-        if (0 != $ret) {
-            return $ret;
+        if (0 !== $ret) {
+            return (int) $ret;
         }
 
         $signature = $array[1];
-        if ($signature != $sMsgSignature) {
+        if (!is_string($signature)) {
+            return ErrorCode::$ComputeSignatureError;
+        }
+        if ($signature !== $sMsgSignature) {
             return (int) ErrorCode::$ValidateSignatureError;
         }
 
         $result = $pc->decrypt($sEchoStr, $this->m_sReceiveId);
-        if (0 != $result[0]) {
+        if (0 !== $result[0]) {
             return (int) $result[0];
         }
-        $sReplyEchoStr = $result[1];
+        $decryptedValue = $result[1];
+        if (!is_string($decryptedValue)) {
+            return ErrorCode::$DecryptAESError;
+        }
+        $sReplyEchoStr = $decryptedValue;
 
         return (int) ErrorCode::$OK;
     }
@@ -71,32 +78,42 @@ class WXBizMsgCrypt
      *    <li>将消息密文和安全签名打包成xml格式</li>
      * </ol>
      *
+     * @param string $sReplyMsg
+     * @param string|null $sTimeStamp
+     * @param string $sNonce
+     * @param string $sEncryptMsg
      * @return int 成功0，失败返回对应的错误码
      */
-    public function EncryptMsg($sReplyMsg, $sTimeStamp, $sNonce, &$sEncryptMsg)
+    public function EncryptMsg(string $sReplyMsg, ?string $sTimeStamp, string $sNonce, string &$sEncryptMsg): int
     {
         $pc = new Prpcrypt($this->m_sEncodingAesKey);
 
         // 加密
         $array = $pc->encrypt($sReplyMsg, $this->m_sReceiveId);
         $ret = $array[0];
-        if (0 != $ret) {
-            return $ret;
+        if (0 !== $ret) {
+            return (int) $ret;
         }
 
-        if (null == $sTimeStamp) {
-            $sTimeStamp = time();
+        if (null === $sTimeStamp) {
+            $sTimeStamp = (string) time();
         }
         $encrypt = $array[1];
+        if (!is_string($encrypt)) {
+            return ErrorCode::$EncryptAESError;
+        }
 
         // 生成安全签名
         $sha1 = new SHA1();
         $array = $sha1->getSHA1($this->m_sToken, $sTimeStamp, $sNonce, $encrypt);
         $ret = $array[0];
-        if (0 != $ret) {
-            return $ret;
+        if (0 !== $ret) {
+            return (int) $ret;
         }
         $signature = $array[1];
+        if (!is_string($signature)) {
+            return ErrorCode::$ComputeSignatureError;
+        }
 
         // 生成发送的xml
         $xmlparse = new XMLParse();
@@ -113,55 +130,93 @@ class WXBizMsgCrypt
      *    <li>对消息进行解密</li>
      * </ol>
      *
+     * @param string $sMsgSignature
+     * @param string|null $sTimeStamp
+     * @param string $sNonce
+     * @param string $sPostData
+     * @param string $sMsg
      * @return int 成功0，失败返回对应的错误码
      */
-    public function DecryptMsg($sMsgSignature, $sTimeStamp, $sNonce, $sPostData, &$sMsg)
+    public function DecryptMsg(string $sMsgSignature, ?string $sTimeStamp, string $sNonce, string $sPostData, string &$sMsg): int
     {
-        if (43 != strlen($this->m_sEncodingAesKey)) {
+        if (43 !== strlen($this->m_sEncodingAesKey)) {
             return ErrorCode::$IllegalAesKey;
         }
 
         $pc = new Prpcrypt($this->m_sEncodingAesKey);
 
+        $encrypt = $this->extractEncryptFromPostData($sPostData);
+        if (is_int($encrypt)) {
+            return $encrypt;
+        }
+
+        if (null === $sTimeStamp) {
+            $sTimeStamp = (string) time();
+        }
+
+        $signatureVerifyResult = $this->verifySignature($sMsgSignature, $sTimeStamp, $sNonce, $encrypt);
+        if (0 !== $signatureVerifyResult) {
+            return $signatureVerifyResult;
+        }
+
+        $result = $pc->decrypt($encrypt, $this->m_sReceiveId);
+        if (0 !== $result[0]) {
+            return (int) $result[0];
+        }
+        $decryptedMsg = $result[1];
+        if (!is_string($decryptedMsg)) {
+            return ErrorCode::$DecryptAESError;
+        }
+        $sMsg = $decryptedMsg;
+
+        return (int) ErrorCode::$OK;
+    }
+
+    private function extractEncryptFromPostData(string $sPostData): string|int
+    {
         if ((bool) json_validate($sPostData)) {
-            $sPostData = json_decode($sPostData, true);
-            $encrypt = $sPostData['Encrypt'];
-        } else {
-            // 提取密文
-            $xmlparse = new XMLParse();
-            $array = $xmlparse->extract($sPostData);
-            $ret = $array[0];
-
-            if (0 != $ret) {
-                return (int) $ret;
+            $decodedData = json_decode($sPostData, true);
+            if (!is_array($decodedData) || !isset($decodedData['Encrypt'])) {
+                return ErrorCode::$ParseXmlError;
             }
-            $encrypt = $array[1];
+
+            return (string) $decodedData['Encrypt'];
         }
 
-        if (null == $sTimeStamp) {
-            $sTimeStamp = time();
+        $xmlparse = new XMLParse();
+        $array = $xmlparse->extract($sPostData);
+        $ret = $array[0];
+
+        if (0 !== $ret) {
+            return (int) $ret;
         }
 
-        // 验证安全签名
+        $encryptValue = $array[1];
+        if (!is_string($encryptValue)) {
+            return ErrorCode::$ParseXmlError;
+        }
+
+        return $encryptValue;
+    }
+
+    private function verifySignature(string $sMsgSignature, string $sTimeStamp, string $sNonce, string $encrypt): int
+    {
         $sha1 = new SHA1();
         $array = $sha1->getSHA1($this->m_sToken, $sTimeStamp, $sNonce, $encrypt);
         $ret = $array[0];
 
-        if (0 != $ret) {
-            return $ret;
+        if (0 !== $ret) {
+            return (int) $ret;
         }
 
         $signature = $array[1];
-        if ($signature != $sMsgSignature) {
+        if (!is_string($signature)) {
+            return ErrorCode::$ComputeSignatureError;
+        }
+        if ($signature !== $sMsgSignature) {
             return (int) ErrorCode::$ValidateSignatureError;
         }
 
-        $result = $pc->decrypt($encrypt, $this->m_sReceiveId);
-        if (0 != $result[0]) {
-            return (int) $result[0];
-        }
-        $sMsg = $result[1];
-
-        return (int) ErrorCode::$OK;
+        return 0;
     }
 }

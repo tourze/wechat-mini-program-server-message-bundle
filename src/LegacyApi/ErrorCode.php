@@ -20,27 +20,27 @@ namespace WechatMiniProgramServerMessageBundle\LegacyApi;
  */
 class ErrorCode
 {
-    public static $OK = 0;
+    public static int $OK = 0;
 
-    public static $ValidateSignatureError = -40001;
+    public static int $ValidateSignatureError = -40001;
 
-    public static $ParseXmlError = -40002;
+    public static int $ParseXmlError = -40002;
 
-    public static $ComputeSignatureError = -40003;
+    public static int $ComputeSignatureError = -40003;
 
-    public static $IllegalAesKey = -40004;
+    public static int $IllegalAesKey = -40004;
 
-    public static $ValidateCorpidError = -40005;
+    public static int $ValidateCorpidError = -40005;
 
-    public static $EncryptAESError = -40006;
+    public static int $EncryptAESError = -40006;
 
-    public static $DecryptAESError = -40007;
+    public static int $DecryptAESError = -40007;
 
-    public static $IllegalBuffer = -40008;
+    public static int $IllegalBuffer = -40008;
 
-    public static $EncodeBase64Error = -40009;
+    public static int $EncodeBase64Error = -40009;
 
-    public static $DecodeBase64Error = -40010;
+    public static int $DecodeBase64Error = -40010;
 
-    public static $GenReturnXmlError = -40011;
+    public static int $GenReturnXmlError = -40011;
 }

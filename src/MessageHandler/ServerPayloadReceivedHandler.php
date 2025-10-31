@@ -6,15 +6,20 @@ use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMInvalidArgumentException;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
-use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Tourze\WechatMiniProgramUserContracts\UserInterface;
 use Tourze\WechatMiniProgramUserContracts\UserLoaderInterface;
 use WechatMiniProgramAuthBundle\Entity\User;
 use WechatMiniProgramAuthBundle\Enum\Language;
-use WechatMiniProgramAuthBundle\Repository\UserRepository;
+use WechatMiniProgramAuthBundle\Service\UserTransformService;
+use WechatMiniProgramBundle\Entity\Account;
 use WechatMiniProgramBundle\Repository\AccountRepository;
 use WechatMiniProgramServerMessageBundle\Entity\ServerMessage;
 use WechatMiniProgramServerMessageBundle\Event\ServerMessageRequestEvent;
@@ -23,55 +28,101 @@ use Yiisoft\Arrays\ArrayHelper;
 use Yiisoft\Json\Json;
 
 #[AsMessageHandler]
+#[Autoconfigure(public: true)]
+#[WithMonologChannel(channel: 'wechat_mini_program_server_message')]
 class ServerPayloadReceivedHandler
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly UserLoaderInterface $userLoader,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly LoggerInterface $logger,
         private readonly AccountRepository $accountRepository,
-        private readonly CacheInterface $cache,
+        #[Autowire(service: 'cache.app')] private readonly AdapterInterface $cache,
         private readonly EntityManagerInterface $entityManager,
+        private readonly UserTransformService $userTransformService,
+        private readonly ?UserLoaderInterface $userLoader = null,
     ) {
     }
 
     public function __invoke(ServerPayloadReceivedMessage $message): void
     {
         $payload = $message->getPayload();
-        if ((bool) empty($payload)) {
+        if ([] === $payload) {
             throw new UnrecoverableMessageHandlingException('回调数据Payload不能为空');
         }
 
-        $account = $this->accountRepository->find($message->getAccountId());
+        $account = $this->getAccount($message->getAccountId());
+
+        if (!$this->isValidPayload($payload)) {
+            return;
+        }
+
+        $msgId = $this->generateMsgId($payload);
+
+        if ($this->isDuplicateMessage($msgId)) {
+            return;
+        }
+
+        $shouldContinue = $this->saveServerMessage($payload, $account, $msgId);
+        if (!$shouldContinue) {
+            return;
+        }
+
+        $localUser = $this->processUser($payload, $account);
+        $this->dispatchEvent($payload, $account, $localUser);
+        $this->markMessageProcessed($msgId);
+    }
+
+    private function getAccount(string $accountId): Account
+    {
+        $account = $this->accountRepository->find($accountId);
         if (null === $account) {
             throw new UnrecoverableMessageHandlingException('找不到小程序账号');
         }
 
-        // 一些特殊情况，可能会有空的请求体提交过来
-        if (!isset($payload['CreateTime'])) {
-            return;
+        return $account;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function isValidPayload(array $payload): bool
+    {
+        return isset($payload['CreateTime']);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function generateMsgId(array $payload): string
+    {
+        $msgId = ArrayHelper::getValue($payload, 'MsgId', '');
+        if ('' === $msgId) {
+            $msgId = 'GEN-' . md5(Json::encode($payload));
         }
 
-        $MsgId = ArrayHelper::getValue($payload, 'MsgId', '');
-        if ((bool) empty($MsgId)) {
-            $MsgId = 'GEN-' . md5(Json::encode($payload));
-        }
+        return strval($msgId);
+    }
 
-        $MsgId = strval($MsgId);
-
-        // 重复消息的处理
-        $cacheKey = ServerMessageRequestEvent::class . $MsgId;
-        if ($this->cache->has($cacheKey)) {
+    private function isDuplicateMessage(string $msgId): bool
+    {
+        $cacheKey = md5(ServerMessageRequestEvent::class . $msgId);
+        if ($this->cache->hasItem($cacheKey)) {
             $this->logger->warning('缓存存在了，即为处理过了', ['cacheKey' => $cacheKey]);
 
-            return;
+            return true;
         }
 
-        // 不管事件内怎么处理，我们先自己保证存一份
+        return false;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function saveServerMessage(array $payload, Account $account, string $msgId): bool
+    {
         $entity = new ServerMessage();
         $entity->setAccount($account);
-        $entity->setMsgId($MsgId);
+        $entity->setMsgId($msgId);
         $entity->setMsgType($payload['MsgType']);
         $entity->setToUserName($payload['ToUserName']);
         $entity->setFromUserName($payload['FromUserName']);
@@ -81,48 +132,81 @@ class ServerPayloadReceivedHandler
         try {
             $this->entityManager->persist($entity);
             $this->entityManager->flush();
+
+            return true;
         } catch (UniqueConstraintViolationException $exception) {
             $this->logger->warning('服务端通知重复，不处理', [
                 'message' => $payload,
                 'exception' => $exception,
             ]);
 
-            return;
+            return false;
         } catch (ORMInvalidArgumentException $exception) {
             $this->logger->error('保存失败未知原因', [
                 'message' => $payload,
                 'exception' => $exception,
             ]);
+
+            return true;
         } catch (\Throwable $exception) {
-            // 其他异常的话，可能会导致我们记录消息失败，但是最好还是别打断下面的流程
             $this->logger->error('记录服务端消息时发生错误', [
                 'exception' => $exception,
                 'message' => $entity,
             ]);
+
+            return true;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function processUser(array $payload, Account $account): UserInterface
+    {
+        if (null === $this->userLoader) {
+            $this->logger->warning('UserLoaderInterface not available, creating new user');
+
+            return $this->createNewUser($payload, $account);
         }
 
-        // 因为在这里我们也能拿到OpenID了，所以同时也要存库一次
         $localUser = $this->userLoader->loadUserByOpenId($payload['FromUserName']);
         if (null === $localUser) {
-            $localUser = new User();
-            $localUser->setAccount($account);
-            $localUser->setOpenId($payload['FromUserName']);
-            $localUser->setLanguage(Language::zh_CN);
-            $localUser->setRawData(Json::encode($payload));
-            $this->entityManager->persist($localUser);
-            $this->entityManager->flush();
+            $localUser = $this->createNewUser($payload, $account);
         }
 
-        // 既然我能拿到微信用户信息了，那么我们就存一份到主用户表
         if ($localUser instanceof User) {
-            $this->userRepository->transformToSysUser($localUser);
+            $this->userTransformService->transformToSysUser($localUser);
         }
 
-        // 分发事件出去让应用自己处理
+        return $localUser;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function createNewUser(array $payload, Account $account): User
+    {
+        $localUser = new User();
+        $localUser->setAccount($account);
+        $localUser->setOpenId($payload['FromUserName']);
+        $localUser->setLanguage(Language::zh_CN);
+        $localUser->setRawData(Json::encode($payload));
+        $this->entityManager->persist($localUser);
+        $this->entityManager->flush();
+
+        return $localUser;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function dispatchEvent(array $payload, Account $account, UserInterface $localUser): void
+    {
         $event = new ServerMessageRequestEvent();
         $event->setMessage($payload);
         $event->setAccount($account);
         $event->setWechatUser($localUser);
+
         try {
             $this->eventDispatcher->dispatch($event);
         } catch (\Throwable $exception) {
@@ -131,7 +215,14 @@ class ServerPayloadReceivedHandler
                 'event' => $event,
             ]);
         }
+    }
 
-        $this->cache->set($cacheKey, time(), 60 * 60);
+    private function markMessageProcessed(string $msgId): void
+    {
+        $cacheKey = md5(ServerMessageRequestEvent::class . $msgId);
+        $cacheItem = $this->cache->getItem($cacheKey);
+        $cacheItem->set(time());
+        $cacheItem->expiresAfter(60 * 60);
+        $this->cache->save($cacheItem);
     }
 }

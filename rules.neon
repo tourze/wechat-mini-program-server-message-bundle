@@ -1,0 +1,25 @@
+parameters:
+    level: 8
+    paths:
+        - src/
+        - tests/
+    excludePaths:
+        # 暂时排除第三方加密库避免 CognitiveComplexity 插件兼容性问题
+        - src/LegacyApi/*
+    # 禁用 CognitiveComplexity 检查来避免插件兼容性问题
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # 忽略测试中的类型窄化断言
+        - '#Call to method PHPUnit\\Framework\\Assert::(assertTrue|assertFalse|assertNotNull|assertInstanceOf|assertSame)\(\) with .+ will always evaluate to (true|false)\.#'
+        
+        # 忽略测试基类中的数组类型参数错误
+        - '#Method .+Test::createKernel\(\) has parameter \$options with no value type specified in iterable type array\.#'
+        
+        # 忽略测试中的 Mock 方法错误
+        - '#Call to an undefined method .+::(expects|method|willReturn|willThrowException|willReturnCallback)\(\)\.#'
+        
+        # 忽略测试中的动态方法调用
+        - '#Dynamic call to static method .+::(assert|equal).+\(\)\.#'
+        
+        # 忽略测试中的对象方法调用类型问题
+        - '#Call to an undefined method object::(getId|persist|flush|getAppId)\(\)\.#'

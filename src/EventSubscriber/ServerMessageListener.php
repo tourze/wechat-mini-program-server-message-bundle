@@ -23,8 +23,14 @@ class ServerMessageListener
 
     public function postPersist(ServerMessage $object): void
     {
+        $account = $object->getAccount();
+        if (null === $account) {
+            return;
+        }
+
         // 没有负责人，不处理了
-        if (null === $object->getAccount()->getDirector()) {
+        $director = $account->getDirector();
+        if (null === $director) {
             return;
         }
 
@@ -36,8 +42,8 @@ class ServerMessageListener
             // {"ToUserName":"gh_24b0688b9fda","FromUserName":"oeg5b5PFuO_A9Ax3cBxajvn6q41Y","CreateTime":1693624245,"MsgType":"event","Event":"charge_service_quota_notify","event_type":3,"spu_id":10000077,"spu_name":"手机号快速验证组件","total_quota":1000,"total_used_quota":1000,"appid":"wxb26a710e583b05dc"}
             $event = new WechatSpuQuotaNoticeEvent();
             $event->setSender(SystemUser::instance());
-            $event->setReceiver($object->getAccount()->getDirector());
-            $event->setAccount($object->getAccount());
+            $event->setReceiver($director);
+            $event->setAccount($account);
             $event->setSpuId($object->getRawData()['spu_id']);
             $event->setSpuName($object->getRawData()['spu_name']);
             $event->setTotalQuota($object->getRawData()['total_quota']);
@@ -48,8 +54,8 @@ class ServerMessageListener
         if (4 === $object->getRawData()['event_type']) {
             $event = new WechatSpuDateValidEvent();
             $event->setSender(SystemUser::instance());
-            $event->setReceiver($object->getAccount()->getDirector());
-            $event->setAccount($object->getAccount());
+            $event->setReceiver($director);
+            $event->setAccount($account);
             $event->setSpuId($object->getRawData()['spu_id']);
             $event->setSpuName($object->getRawData()['spu_name']);
             $event->setValidityEndTime($object->getRawData()['validity_end_time']);

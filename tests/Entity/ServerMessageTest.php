@@ -2,129 +2,130 @@
 
 namespace WechatMiniProgramServerMessageBundle\Tests\Entity;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use WechatMiniProgramBundle\Entity\Account;
 use WechatMiniProgramServerMessageBundle\Entity\ServerMessage;
 
-class ServerMessageTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(ServerMessage::class)]
+final class ServerMessageTest extends AbstractEntityTestCase
 {
-    // 测试实体初始化后默认值
-    public function testInitialState(): void
+    protected function createEntity(): object
+    {
+        return new ServerMessage();
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        return [
+            'createTime' => ['createTime', new \DateTimeImmutable()],
+            'toUserName' => ['toUserName', 'test_user'],
+            'fromUserName' => ['fromUserName', 'from_user'],
+            'msgType' => ['msgType', 'text'],
+            'msgId' => ['msgId', 'msg_123'],
+            'rawData' => ['rawData', ['key' => 'value']],
+        ];
+    }
+
+    public function testGetId(): void
     {
         $serverMessage = new ServerMessage();
+        $this->assertSame(0, $serverMessage->getId());
+    }
 
+    public function testSetAndGetCreateTime(): void
+    {
+        $serverMessage = new ServerMessage();
+        $createTime = new \DateTimeImmutable();
+        $serverMessage->setCreateTime($createTime);
+        $this->assertSame($createTime, $serverMessage->getCreateTime());
+    }
+
+    public function testSetAndGetToUserName(): void
+    {
+        $serverMessage = new ServerMessage();
+        $toUserName = 'test_to_user';
+        $serverMessage->setToUserName($toUserName);
+        $this->assertSame($toUserName, $serverMessage->getToUserName());
+    }
+
+    public function testSetAndGetFromUserName(): void
+    {
+        $serverMessage = new ServerMessage();
+        $fromUserName = 'test_from_user';
+        $serverMessage->setFromUserName($fromUserName);
+        $this->assertSame($fromUserName, $serverMessage->getFromUserName());
+    }
+
+    public function testSetAndGetMsgType(): void
+    {
+        $serverMessage = new ServerMessage();
+        $msgType = 'text';
+        $serverMessage->setMsgType($msgType);
+        $this->assertSame($msgType, $serverMessage->getMsgType());
+    }
+
+    public function testSetAndGetMsgId(): void
+    {
+        $serverMessage = new ServerMessage();
+        $msgId = 'msg_123456';
+        $serverMessage->setMsgId($msgId);
+        $this->assertSame($msgId, $serverMessage->getMsgId());
+    }
+
+    public function testSetAndGetRawData(): void
+    {
+        $serverMessage = new ServerMessage();
+        $rawData = ['key' => 'value', 'data' => 'test'];
+        $serverMessage->setRawData($rawData);
+        $this->assertSame($rawData, $serverMessage->getRawData());
+
+        $serverMessage->setRawData(null);
+        $this->assertNull($serverMessage->getRawData());
+    }
+
+    public function testSetAndGetAccount(): void
+    {
+        $serverMessage = new ServerMessage();
+        // 使用具体类Account的mock是必要的，因为：
+        // 1. Account是实体类，没有对应的接口
+        // 2. 测试需要验证实体之间的关联关系
+        // 3. Doctrine实体通常直接依赖具体类而非接口
+        $account = $this->createMock(Account::class);
+        $serverMessage->setAccount($account);
+        $this->assertSame($account, $serverMessage->getAccount());
+
+        $serverMessage->setAccount(null);
+        $this->assertNull($serverMessage->getAccount());
+    }
+
+    public function testToString(): void
+    {
+        $serverMessage = new ServerMessage();
+        $this->assertSame('0', (string) $serverMessage);
+    }
+
+    public function testStringableInterface(): void
+    {
+        $serverMessage = new ServerMessage();
+        $this->assertInstanceOf(\Stringable::class, $serverMessage);
+    }
+
+    public function testInitialNullValues(): void
+    {
+        $serverMessage = new ServerMessage();
+        $this->assertNull($serverMessage->getCreateTime());
         $this->assertNull($serverMessage->getToUserName());
         $this->assertNull($serverMessage->getFromUserName());
         $this->assertNull($serverMessage->getMsgType());
         $this->assertNull($serverMessage->getMsgId());
         $this->assertNull($serverMessage->getRawData());
-        $this->assertNull($serverMessage->getAccount());
-        $this->assertEquals(0, $serverMessage->getId());
-    }
-
-    // 测试设置和获取ToUserName
-    public function testSetAndGetToUserNameWithValidValue(): void
-    {
-        $serverMessage = new ServerMessage();
-        $testValue = 'test_to_user_name';
-
-        $returnValue = $serverMessage->setToUserName($testValue);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertEquals($testValue, $serverMessage->getToUserName());
-    }
-
-    // 测试设置和获取FromUserName
-    public function testSetAndGetFromUserNameWithValidValue(): void
-    {
-        $serverMessage = new ServerMessage();
-        $testValue = 'test_from_user_name';
-
-        $returnValue = $serverMessage->setFromUserName($testValue);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertEquals($testValue, $serverMessage->getFromUserName());
-    }
-
-    // 测试设置和获取MsgType
-    public function testSetAndGetMsgTypeWithValidValue(): void
-    {
-        $serverMessage = new ServerMessage();
-        $testValue = 'text';
-
-        $returnValue = $serverMessage->setMsgType($testValue);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertEquals($testValue, $serverMessage->getMsgType());
-    }
-
-    // 测试设置和获取MsgId
-    public function testSetAndGetMsgIdWithValidValue(): void
-    {
-        $serverMessage = new ServerMessage();
-        $testValue = '123456789';
-
-        $returnValue = $serverMessage->setMsgId($testValue);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertEquals($testValue, $serverMessage->getMsgId());
-    }
-
-    // 测试设置和获取RawData
-    public function testSetAndGetRawDataWithValidArray(): void
-    {
-        $serverMessage = new ServerMessage();
-        $testValue = ['key' => 'value', 'nested' => ['data' => true]];
-
-        $returnValue = $serverMessage->setRawData($testValue);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertEquals($testValue, $serverMessage->getRawData());
-    }
-
-    // 测试设置和获取RawData，空值情况
-    public function testSetAndGetRawDataWithNullValue(): void
-    {
-        $serverMessage = new ServerMessage();
-
-        $returnValue = $serverMessage->setRawData(null);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertNull($serverMessage->getRawData());
-    }
-
-    // 测试设置和获取CreateTime
-    public function testSetAndGetCreateTimeWithValidDateTime(): void
-    {
-        $serverMessage = new ServerMessage();
-        $testValue = new \DateTimeImmutable();
-
-        $returnValue = $serverMessage->setCreateTime($testValue);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertSame($testValue, $serverMessage->getCreateTime());
-    }
-
-    // 测试设置和获取Account关联
-    public function testSetAndGetAccountWithValidAccount(): void
-    {
-        $serverMessage = new ServerMessage();
-        $account = $this->createMock(Account::class);
-
-        $returnValue = $serverMessage->setAccount($account);
-
-        $this->assertSame($serverMessage, $returnValue);
-        $this->assertSame($account, $serverMessage->getAccount());
-    }
-
-    // 测试设置和获取Account关联，空值情况
-    public function testSetAndGetAccountWithNullValue(): void
-    {
-        $serverMessage = new ServerMessage();
-
-        $returnValue = $serverMessage->setAccount(null);
-
-        $this->assertSame($serverMessage, $returnValue);
         $this->assertNull($serverMessage->getAccount());
     }
 }

@@ -4,13 +4,26 @@ declare(strict_types=1);
 
 namespace WechatMiniProgramServerMessageBundle\Tests\LegacyApi;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 use WechatMiniProgramServerMessageBundle\LegacyApi\ErrorCode;
 
-final class ErrorCodeTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(ErrorCode::class)]
+#[RunTestsInSeparateProcesses]
+final class ErrorCodeTest extends AbstractIntegrationTestCase
 {
+    protected function onSetUp(): void
+    {
+        // 简单的常量测试，不需要特殊的设置
+    }
+
     public function testConstants(): void
     {
+        // ErrorCode 是一个包含常量的类，不需要实例化
         self::assertSame(0, ErrorCode::$OK);
         self::assertSame(-40001, ErrorCode::$ValidateSignatureError);
         self::assertSame(-40002, ErrorCode::$ParseXmlError);

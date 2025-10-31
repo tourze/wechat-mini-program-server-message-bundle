@@ -2,6 +2,7 @@
 
 namespace WechatMiniProgramServerMessageBundle\EventSubscriber;
 
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Tourze\WechatMiniProgramUserContracts\UserLoaderInterface;
@@ -15,11 +16,12 @@ use Yiisoft\Arrays\ArrayHelper;
  * @see https://developers.weixin.qq.com/miniprogram/dev/framework/security.html#%E6%8E%88%E6%9D%83%E7%94%A8%E6%88%B7%E8%B5%84%E6%96%99%E5%8F%98%E6%9B%B4
  * @see https://developers.weixin.qq.com/community/develop/doc/0004aa15a00ff8ced83d720015b400
  */
+#[WithMonologChannel(channel: 'wechat_mini_program_server_message')]
 class UserInfoInvokeSubscriber
 {
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly UserLoaderInterface $userLoader,
+        private readonly ?UserLoaderInterface $userLoader = null,
     ) {
     }
 
@@ -48,6 +50,12 @@ class UserInfoInvokeSubscriber
         $openID = ArrayHelper::getValue($message, 'OpenID');
         if (null === $openID || '' === $openID) {
             $openID = ArrayHelper::getValue($message, 'FromUserName');
+        }
+
+        if (null === $this->userLoader) {
+            $this->logger->warning('UserLoaderInterface not available, skipping user authorization revoke processing');
+
+            return;
         }
 
         $user = $this->userLoader->loadUserByOpenId($openID);

@@ -9,7 +9,7 @@ use WechatMiniProgramBundle\Entity\Account;
 class ServerMessageRequestEvent extends Event
 {
     /**
-     * @var array 发送的消息
+     * @var array<string, mixed> 发送的消息
      */
     private array $message;
 
@@ -20,11 +20,17 @@ class ServerMessageRequestEvent extends Event
 
     private UserInterface $wechatUser;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getMessage(): array
     {
         return $this->message;
     }
 
+    /**
+     * @param array<string, mixed> $message
+     */
     public function setMessage(array $message): void
     {
         $this->message = $message;
