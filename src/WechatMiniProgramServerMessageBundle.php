@@ -8,6 +8,7 @@ use Tourze\BundleDependency\BundleDependencyInterface;
 use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 use WechatMiniProgramAuthBundle\WechatMiniProgramAuthBundle;
 use WechatMiniProgramBundle\WechatMiniProgramBundle;
+use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 
 class WechatMiniProgramServerMessageBundle extends Bundle implements BundleDependencyInterface
 {
@@ -23,6 +24,7 @@ class WechatMiniProgramServerMessageBundle extends Bundle implements BundleDepen
             RoutingAutoLoaderBundle::class => ['all' => true],
             WechatMiniProgramBundle::class => ['all' => true],
             WechatMiniProgramAuthBundle::class => ['all' => true],
+            EasyAdminMenuBundle::class => ['all' => true],
         ];
     }
 }
