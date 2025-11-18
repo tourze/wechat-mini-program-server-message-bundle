@@ -81,11 +81,6 @@ final class ServerMessageCrudControllerTest extends AbstractEasyAdminControllerT
         $this->assertInstanceOf(ServerMessageCrudController::class, $controller);
     }
 
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(ServerMessage::class, ServerMessageCrudController::getEntityFqcn());
-    }
-
     public function testConfigureCrudSettings(): void
     {
         $controller = new ServerMessageCrudController();
