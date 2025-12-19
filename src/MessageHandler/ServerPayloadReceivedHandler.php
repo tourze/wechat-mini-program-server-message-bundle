@@ -30,7 +30,7 @@ use Yiisoft\Json\Json;
 #[AsMessageHandler]
 #[Autoconfigure(public: true)]
 #[WithMonologChannel(channel: 'wechat_mini_program_server_message')]
-class ServerPayloadReceivedHandler
+final class ServerPayloadReceivedHandler
 {
     public function __construct(
         private readonly EventDispatcherInterface $eventDispatcher,

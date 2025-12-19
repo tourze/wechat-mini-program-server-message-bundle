@@ -4,7 +4,7 @@ namespace WechatMiniProgramServerMessageBundle\Message;
 
 use Tourze\AsyncContracts\AsyncMessageInterface;
 
-class ServerPayloadReceivedMessage implements AsyncMessageInterface
+final class ServerPayloadReceivedMessage implements AsyncMessageInterface
 {
     /**
      * @var array<string, mixed> 消息内容

@@ -17,7 +17,7 @@ use Yiisoft\Arrays\ArrayHelper;
  * @see https://developers.weixin.qq.com/community/develop/doc/0004aa15a00ff8ced83d720015b400
  */
 #[WithMonologChannel(channel: 'wechat_mini_program_server_message')]
-class UserInfoInvokeSubscriber
+final class UserInfoInvokeSubscriber
 {
     public function __construct(
         private readonly LoggerInterface $logger,

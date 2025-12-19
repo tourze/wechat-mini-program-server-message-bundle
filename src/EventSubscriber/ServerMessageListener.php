@@ -15,7 +15,7 @@ use WechatMiniProgramServerMessageBundle\Event\WechatSpuQuotaNoticeEvent;
  * @see https://developers.weixin.qq.com/miniprogram/dev/platform-capabilities/charge/callback/charge_mp_service_validity_notify.html
  */
 #[AsEntityListener(event: Events::postPersist, method: 'postPersist', entity: ServerMessage::class)]
-class ServerMessageListener
+final class ServerMessageListener
 {
     public function __construct(private readonly EventDispatcherInterface $eventDispatcher)
     {

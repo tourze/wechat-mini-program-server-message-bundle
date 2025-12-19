@@ -8,7 +8,7 @@ use WechatMiniProgramServerMessageBundle\Traits\WechatSpuTrait;
 /**
  * @see https://developers.weixin.qq.com/miniprogram/dev/platform-capabilities/charge/callback/charge_mp_service_validity_notify.html
  */
-class WechatSpuDateValidEvent extends UserInteractionEvent
+final class WechatSpuDateValidEvent extends UserInteractionEvent
 {
     use WechatSpuTrait;
 

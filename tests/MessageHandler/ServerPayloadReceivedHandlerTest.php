@@ -2,15 +2,10 @@
 
 namespace WechatMiniProgramServerMessageBundle\Tests\MessageHandler;
 
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
-use WechatMiniProgramAuthBundle\Service\UserTransformService;
-use WechatMiniProgramBundle\Repository\AccountRepository;
+use WechatMiniProgramServerMessageBundle\Message\ServerPayloadReceivedMessage;
 use WechatMiniProgramServerMessageBundle\MessageHandler\ServerPayloadReceivedHandler;
 
 /**
@@ -25,35 +20,44 @@ final class ServerPayloadReceivedHandlerTest extends AbstractIntegrationTestCase
         // 消息处理器测试，不需要特殊的设置
     }
 
-    public function testHandlerCanBeInstantiated(): void
+    public function testHandlerCanBeInstantiatedFromContainer(): void
     {
-        $handler = $this->createHandler();
+        $handler = self::getService(ServerPayloadReceivedHandler::class);
+
         $this->assertInstanceOf(ServerPayloadReceivedHandler::class, $handler);
     }
 
-    /**
-     * 创建处理器实例的工厂方法
-     */
-    private function createHandler(): ServerPayloadReceivedHandler
+    public function testHandlerHasCorrectInvokeMethodSignature(): void
     {
-        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $logger = $this->createMock(LoggerInterface::class);
-        $accountRepository = $this->createMock(AccountRepository::class);
-        $cache = $this->createMock(AdapterInterface::class);
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $userTransformService = $this->createMock(UserTransformService::class);
+        $handler = self::getService(ServerPayloadReceivedHandler::class);
 
-        // 通过反射创建实例以避免直接实例化规则冲突
-        $reflection = new \ReflectionClass(ServerPayloadReceivedHandler::class);
+        $reflection = new \ReflectionClass($handler);
+        $this->assertTrue($reflection->hasMethod('__invoke'));
 
-        return $reflection->newInstance(
-            $eventDispatcher,
-            $logger,
-            $accountRepository,
-            $cache,
-            $entityManager,
-            $userTransformService,
-            null
-        );
+        $method = $reflection->getMethod('__invoke');
+        $this->assertTrue($method->isPublic());
+
+        $parameters = $method->getParameters();
+        $this->assertCount(1, $parameters);
+
+        $firstParameter = $parameters[0];
+        $this->assertSame('message', $firstParameter->getName());
+
+        $type = $firstParameter->getType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type);
+        $this->assertSame(ServerPayloadReceivedMessage::class, $type->getName());
+        $this->assertFalse($type->allowsNull());
+    }
+
+    public function testHandlerHasRequiredReturnType(): void
+    {
+        $handler = self::getService(ServerPayloadReceivedHandler::class);
+
+        $reflection = new \ReflectionClass($handler);
+        $method = $reflection->getMethod('__invoke');
+
+        $returnType = $method->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertSame('void', $returnType->getName());
     }
 }

@@ -6,7 +6,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 use Tourze\WechatMiniProgramUserContracts\UserInterface;
 use WechatMiniProgramBundle\Entity\Account;
 
-class ServerMessageRequestEvent extends Event
+final class ServerMessageRequestEvent extends Event
 {
     /**
      * @var array<string, mixed> 发送的消息

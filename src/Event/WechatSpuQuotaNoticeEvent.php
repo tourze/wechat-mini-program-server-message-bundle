@@ -8,7 +8,7 @@ use WechatMiniProgramServerMessageBundle\Traits\WechatSpuTrait;
 /**
  * @see https://developers.weixin.qq.com/miniprogram/dev/platform-capabilities/charge/callback/charge_mp_service_quota_notify.html
  */
-class WechatSpuQuotaNoticeEvent extends UserInteractionEvent
+final class WechatSpuQuotaNoticeEvent extends UserInteractionEvent
 {
     use WechatSpuTrait;
 
